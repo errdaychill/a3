@@ -49,6 +49,8 @@ class ParserModel(nn.Module):
         self.pretrained_embeddings = nn.Embedding(embeddings.shape[0], self.embed_size)
         self.pretrained_embeddings.weight = nn.Parameter(torch.tensor(embeddings))
 
+
+
         ### YOUR CODE HERE (~5 Lines)
         ### TODO:
         ###     1) Construct `self.embed_to_hidden` linear layer, initializing the weight matrix
@@ -71,8 +73,12 @@ class ParserModel(nn.Module):
         ###     Linear Layer: https://pytorch.org/docs/stable/nn.html#torch.nn.Linear
         ###     Xavier Init: https://pytorch.org/docs/stable/nn.html#torch.nn.init.xavier_uniform_
         ###     Dropout: https://pytorch.org/docs/stable/nn.html#torch.nn.Dropout
-
-
+        
+        self.embed_to_hidden = nn.Linear(self.embed_size *self.n_features, self.hidden_size)
+        nn.init.xavier_uniform_(self.embed_to_hidden.weight)
+        self.dropout = nn.Dropout(p=self.dropout_prob)
+        self.hidden_to_logits = nn.Linear(self.hidden_size,self.n_classes)
+        nn.init.xavier_uniform_(self.hidden_to_logits)
         ### END YOUR CODE
 
     def embedding_lookup(self, t):
