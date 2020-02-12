@@ -30,8 +30,9 @@ class PartialParse(object):
         ###
         ### Note: The root token should be represented with the string "ROOT"
         ###
-
-
+        self.stack = ["ROOT"]                
+        self.buffer = sentence
+        self.dependencies = []
         ### END YOUR CODE
 
 
@@ -42,6 +43,19 @@ class PartialParse(object):
                                 left-arc, and right-arc transitions. You can assume the provided
                                 transition is a legal transition.
         """
+        
+        if transition == "S":
+            self.stack.append(self.buffer.pop(0))
+        elif transition == "LA":
+            dependent = self.stack.pop(-2)
+            self.dependencies.append((self.stack[-1],dependent))
+        elif transition == "RA":
+            dependent = self.stack.pop()
+            self.dependencies.append((self.stack[-1],dependent))
+        else:
+            raise Exception("Wrong Transition")
+
+
         ### YOUR CODE HERE (~7-10 Lines)
         ### TODO:
         ###     Implement a single parsing step, i.e. the logic for the following as
@@ -87,6 +101,20 @@ def minibatch_parse(sentences, model, batch_size):
     """
     dependencies = []
 
+    partial_parses = [PartialParse(sentence) for sentence in sentences]
+    unfinished_parses = partial_parses
+    
+    while len(unfinished_parses):
+        parsers = unfinished_parses[:batch_size]
+        batch_transitions = model.predict(parsers)
+        for pp, transition in zip(parsers, batch_transitions):
+            pp.parse([transition])
+            if len(pp.buffer)==0 and len(pp.stack) ==1:
+                unfinished_parses.remove(pp)
+        
+                    
+        
+    
     ### YOUR CODE HERE (~8-10 Lines)
     ### TODO:
     ###     Implement the minibatch parse algorithm as described in the pdf handout
@@ -103,7 +131,7 @@ def minibatch_parse(sentences, model, batch_size):
 
 
     ### END YOUR CODE
-
+    dependencies = [pp.dependencies for pp in partial_parses]
     return dependencies
 
 
